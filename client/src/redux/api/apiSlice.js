@@ -2,7 +2,10 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const apiSlice = createApi({
   reducerPath: "api",
-  baseQuery: fetchBaseQuery({ baseUrl: "import.meta.env.VITE_API_URL" }),
+  baseQuery: fetchBaseQuery({
+    // Ensure this matches the Key you put in Vercel
+    baseUrl: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  }),
   // Registered all domain tags for automatic cache invalidation
   tagTypes: ["Product", "User", "Order", "Customer"],
 
