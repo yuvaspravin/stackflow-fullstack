@@ -3,10 +3,10 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: fetchBaseQuery({
-    // VERCEL TIP: Ensure VITE_API_URL in Vercel dashboard ends with /api
-    // Example: https://stockflow-backend.onrender.com/api
+    // Vercel uses the env variable, Local uses localhost
     baseUrl: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   }),
+  // Registered all domain tags for automatic cache invalidation
   tagTypes: ["Product", "User", "Order", "Customer", "Dashboard"],
 
   endpoints: (builder) => ({
@@ -14,7 +14,13 @@ export const apiSlice = createApi({
     // 1. PRODUCT MODULE
     // ==========================================
     getProducts: builder.query({
-      query: (params) => ({ url: "products", params }), // Removed leading slash
+      query: ({
+        search = "",
+        page = 1,
+        sortBy = "createdAt",
+        order = "desc",
+      }) =>
+        `products?search=${search}&page=${page}&sortBy=${sortBy}&order=${order}`,
       providesTags: ["Product"],
     }),
     getProduct: builder.query({
@@ -27,7 +33,7 @@ export const apiSlice = createApi({
         method: "POST",
         body: newProduct,
       }),
-      invalidatesTags: ["Product"],
+      invalidatesTags: ["Product", "Dashboard"],
     }),
     updateProduct: builder.mutation({
       query: ({ id, ...updatedData }) => ({
@@ -35,18 +41,24 @@ export const apiSlice = createApi({
         method: "PUT",
         body: updatedData,
       }),
-      invalidatesTags: ["Product"],
+      invalidatesTags: ["Product", "Dashboard"],
     }),
     deleteProduct: builder.mutation({
       query: (id) => ({ url: `products/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Product"],
+      invalidatesTags: ["Product", "Dashboard"],
     }),
 
     // ==========================================
     // 2. CUSTOMER MODULE (CRM)
     // ==========================================
     getCustomers: builder.query({
-      query: (params) => ({ url: "customers", params }),
+      query: ({
+        search = "",
+        page = 1,
+        sortBy = "createdAt",
+        order = "desc",
+      }) =>
+        `customers?search=${search}&page=${page}&sortBy=${sortBy}&order=${order}`,
       providesTags: ["Customer"],
     }),
     getCustomer: builder.query({
@@ -59,7 +71,7 @@ export const apiSlice = createApi({
         method: "POST",
         body: newCustomer,
       }),
-      invalidatesTags: ["Customer"],
+      invalidatesTags: ["Customer", "Dashboard"],
     }),
     updateCustomer: builder.mutation({
       query: ({ id, ...updatedData }) => ({
@@ -67,11 +79,11 @@ export const apiSlice = createApi({
         method: "PUT",
         body: updatedData,
       }),
-      invalidatesTags: ["Customer"],
+      invalidatesTags: ["Customer", "Dashboard"],
     }),
     deleteCustomer: builder.mutation({
       query: (id) => ({ url: `customers/${id}`, method: "DELETE" }),
-      invalidatesTags: ["Customer"],
+      invalidatesTags: ["Customer", "Dashboard"],
     }),
 
     // ==========================================
@@ -107,31 +119,47 @@ export const apiSlice = createApi({
     }),
 
     // ==========================================
-    // 4. SYSTEM & DASHBOARD
+    // 4. SYSTEM UTILITIES
     // ==========================================
+    importGenericData: builder.mutation({
+      query: ({ type, formData }) => ({
+        url: `data/import/${type}`,
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: ["Product", "User", "Order", "Customer", "Dashboard"],
+    }),
     getDashboardData: builder.query({
-      // Removed the leading / before dashboard
       query: (search = "") => `dashboard/stats?search=${search}`,
-      providesTags: ["Dashboard"],
+      providesTags: ["Order", "Product", "Customer", "Dashboard"],
     }),
   }),
 });
 
+// Final Export List - DO NOT CHANGE THESE NAMES
 export const {
+  // Product Hooks
   useGetProductsQuery,
   useGetProductQuery,
   useAddProductMutation,
   useUpdateProductMutation,
   useDeleteProductMutation,
+
+  // Customer Hooks
   useGetCustomersQuery,
   useGetCustomerQuery,
   useAddCustomerMutation,
   useUpdateCustomerMutation,
   useDeleteCustomerMutation,
+
+  // Order Hooks
   useGetOrdersQuery,
   useAddOrderMutation,
   useAddPaymentMutation,
   useGetOrderQuery,
   useUpdateOrderMutation,
+
+  // System & Dashboard Hooks
+  useImportGenericDataMutation,
   useGetDashboardDataQuery,
 } = apiSlice;
