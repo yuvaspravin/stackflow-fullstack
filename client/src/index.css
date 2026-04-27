@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* THIS IS THE CRUCIAL PART THAT KILLS THE OUTER SCROLLBAR */
+  html,
+  body,
+  #root {
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: #f8fafc;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
